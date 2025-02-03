@@ -6,7 +6,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:tesis_aplicacion/utils/global.colors.dart';
 import 'package:tesis_aplicacion/utils/apiURL.dart';
-
+import 'package:get/get.dart';
+import 'package:tesis_aplicacion/utils/shared_preferences_helper.dart';
 
 class PerfilPage extends StatefulWidget {
   final int userId;
@@ -18,7 +19,6 @@ class PerfilPage extends StatefulWidget {
 }
 
 class _PerfilPageState extends State<PerfilPage> {
-
   final TextEditingController nombreController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController telefonoController = TextEditingController();
@@ -36,7 +36,8 @@ class _PerfilPageState extends State<PerfilPage> {
     if (result != null && result is Map) {
       setState(() {
         selectedLocation = result['location'];
-        direccionController.text = result['address'] ?? "Dirección no encontrada";
+        direccionController.text =
+            result['address'] ?? "Dirección no encontrada";
       });
     }
   }
@@ -59,7 +60,8 @@ class _PerfilPageState extends State<PerfilPage> {
           emailController.text = data['email'];
           telefonoController.text = data['telefono'];
           direccionController.text = data['direccion'];
-          selectedLocation = LatLng(data['coordenadas_lat'], data['coordenadas_lon']);
+          selectedLocation =
+              LatLng(data['coordenadas_lat'], data['coordenadas_lon']);
           isLoading = false;
         });
       } else {
@@ -92,7 +94,10 @@ class _PerfilPageState extends State<PerfilPage> {
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Perfil actualizado con éxito.')),
+          SnackBar(
+            content: Text('Perfil actualizado con éxito.'),
+            backgroundColor: Colors.green,
+          ),
         );
       } else {
         throw Exception('Error al actualizar el perfil.');
@@ -100,17 +105,27 @@ class _PerfilPageState extends State<PerfilPage> {
     } catch (e) {
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al actualizar el perfil.')),
+        SnackBar(
+          content: Text('Error al actualizar el perfil.'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
+  }
+
+  void _logout(BuildContext context) async {
+    await SharedPreferencesHelper.clearUserSession(); // Clear session
+    Get.offAllNamed('/login'); // Navigate to login screen
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Perfil',
-          style: TextStyle(color: Colors.white),),
+        title: Text(
+          'Perfil',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: GlobalColors.mainColor,
         iconTheme: IconThemeData(color: Colors.white),
         actions: [
@@ -125,6 +140,10 @@ class _PerfilPageState extends State<PerfilPage> {
                 });
               }
             },
+          ),
+          IconButton(
+            icon: Icon(Icons.logout, color: Colors.red), // Logout button
+            onPressed: () => _logout(context), // Call logout function
           ),
         ],
       ),
@@ -150,7 +169,8 @@ class _PerfilPageState extends State<PerfilPage> {
                   SizedBox(height: 16),
                   TextField(
                     controller: emailController,
-                    decoration: InputDecoration(labelText: 'Correo Electrónico'),
+                    decoration:
+                        InputDecoration(labelText: 'Correo Electrónico'),
                     readOnly: !isEditing, // Editable solo en modo edición
                   ),
                   SizedBox(height: 16),
@@ -173,6 +193,14 @@ class _PerfilPageState extends State<PerfilPage> {
                     ),
                     readOnly: !isEditing, // Editable solo en modo edición
                   ),
+                  if (isEditing) // Mostrar solo en modo edición
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        "Presiona el icono de mapa para actualizar tu dirección",
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -218,8 +246,25 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  Future<String?> getAddressFromLatLng(double latitude, double longitude) async {
-    const String apiKey = 'AIzaSyBscbM7aq7pygWcvtSRPavGpBQfJkRFQv0'; // Reemplaza con tu clave de API
+  Future<String?> getGoogleApiKey() async {
+    final response =
+        await http.get(Uri.parse('${ApiConfig.baseUrl}/configuracion/api-key'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['api_key'];
+    }
+    return null;
+  }
+
+  Future<String?> getAddressFromLatLng(
+      double latitude, double longitude) async {
+    final apiKey = await getGoogleApiKey();
+    if (apiKey == null) {
+      print("No se pudo obtener la clave de API.");
+      return null;
+    }
+
     final String url =
         'https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=$apiKey';
 
@@ -228,7 +273,7 @@ class _MapScreenState extends State<MapScreen> {
       final response = await http.get(Uri.parse(url));
       print("Código de respuesta: ${response.statusCode}");
       print("Respuesta: ${response.body}");
-          
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['results'] != null && data['results'].isNotEmpty) {

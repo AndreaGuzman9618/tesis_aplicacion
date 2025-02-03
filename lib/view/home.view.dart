@@ -2,9 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tesis_aplicacion/utils/global.colors.dart';
 import 'package:tesis_aplicacion/utils/shared_preferences_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
+
+  void _logout(BuildContext context) async {
+    await SharedPreferencesHelper
+        .clearUserSession(); // Eliminar datos de sesión
+    Get.offAllNamed('/login'); // Redirigir al login
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +24,15 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: GlobalColors.mainColor,
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            tooltip: 'Cerrar sesión',
+            onPressed: () {
+              _logout(context);
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -79,7 +95,21 @@ class HomeScreen extends StatelessWidget {
                   _buildActionButton(
                     icon: Icons.notifications,
                     label: 'Notificaciones',
-                    onTap: () => Get.toNamed('/notifications'),
+                    onTap: () async {
+                      int? userId = await SharedPreferencesHelper
+                          .getUserId(); // Usar la función desde el helper
+                      if (userId != null) {
+                        // Si el ID existe, navegar al perfil
+                        Get.toNamed('/notifications', arguments: userId);
+                      } else {
+                        // Manejar el caso donde no se encuentra el ID
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text('Error: ID de usuario no encontrado')),
+                        );
+                      }
+                    },
                   ),
                   _buildActionButton(
                     icon: Icons.settings,

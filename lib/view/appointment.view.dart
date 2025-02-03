@@ -169,21 +169,21 @@ class _AgendarCitaPageState extends State<AgendarCitaPage> {
             '${ApiConfig.baseUrl}/citas/especialidades_reservadas/${userId}'),
       );
 
-      print('userId: $userId');
-
       if (response.statusCode == 200) {
-        print("Response Status: ${response.statusCode}");
-        print("Response Body: ${response.body}");
-
         final data = json.decode(response.body)['data'];
+
+        setState(() {
+          _especialidadesReservadas = List<int>.from(
+            data.map((e) => int.tryParse(e.toString()) ?? 0),
+          );
+        });
+
+        print("Especialidades reservadas: $_especialidadesReservadas");
       } else {
-        print(
-            "Error al cargar especialidades reservadas. Status: ${response.statusCode}");
+        print("Error al cargar especialidades reservadas");
       }
-    } catch (e, stackTrace) {
-      // Log the error message and stack trace for detailed debugging
+    } catch (e) {
       print("Error de conexión al cargar especialidades reservadas: $e");
-      print("StackTrace: $stackTrace");
     }
   }
 
@@ -297,6 +297,7 @@ class _AgendarCitaPageState extends State<AgendarCitaPage> {
                 }).toList(),
                 onChanged: (value) {
                   if (value != null) {
+                    _seleccionarEspecialidad(value);
                     setState(() {
                       _selectedEspecialidad = value;
                       _fetchCentros(value);

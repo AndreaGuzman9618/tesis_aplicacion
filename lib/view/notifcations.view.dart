@@ -1,60 +1,74 @@
 import 'package:flutter/material.dart';
-import 'package:tesis_aplicacion/utils/global.colors.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:tesis_aplicacion/utils/apiURL.dart';
 
-class NotificacionesPage extends StatelessWidget {
+class NotificacionesPage extends StatefulWidget {
+  final int userId;
+  const NotificacionesPage({Key? key, required this.userId}) : super(key: key);
+
+  @override
+  _NotificacionesPageState createState() => _NotificacionesPageState();
+}
+
+class _NotificacionesPageState extends State<NotificacionesPage> {
+  List<Map<String, dynamic>> _notificaciones = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchNotificaciones();
+  }
+
+  Future<void> _fetchNotificaciones() async {
+    try {
+      final response = await http.get(Uri.parse(
+          '${ApiConfig.baseUrl}/notificaciones/usuario/${widget.userId}'));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body)['data'];
+        setState(() {
+          _notificaciones = List<Map<String, dynamic>>.from(data);
+        });
+      } else {
+        print("Error al cargar notificaciones");
+      }
+    } catch (e) {
+      print("Error de conexión al cargar notificaciones");
+    }
+  }
+
+  Future<void> _marcarComoLeida(int idNotificacion) async {
+    await http.put(
+        Uri.parse('${ApiConfig.baseUrl}/notificaciones/leer/$idNotificacion'));
+    _fetchNotificaciones();
+  }
+
+  Future<void> _eliminarNotificacion(int idNotificacion) async {
+    await http.put(Uri.parse(
+        '${ApiConfig.baseUrl}/notificaciones/eliminar/$idNotificacion'));
+    _fetchNotificaciones();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Notificaciones"),
-        backgroundColor: GlobalColors.mainColor,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          _buildNotificacionCard(
-            context,
-            "Recordatorio de Cita",
-            "Tienes una cita programada para el 28 de noviembre a las 10:00 AM en el Centro de Salud Quitumbe.",
-            Icons.calendar_today,
-          ),
-          _buildNotificacionCard(
-            context,
-            "Cita Reagendada",
-            "Tu cita con el cardiólogo ha sido reagendada para el 30 de noviembre a las 11:00 AM.",
-            Icons.update,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNotificacionCard(
-    BuildContext context,
-    String titulo,
-    String descripcion,
-    IconData icono,
-  ) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      child: ListTile(
-        leading: Icon(icono, color: GlobalColors.mainColor, size: 40),
-        title: Text(
-          titulo,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: GlobalColors.textColor,
-          ),
-        ),
-        subtitle: Text(
-          descripcion,
-          style: TextStyle(fontSize: 14, color: GlobalColors.textColor),
-        ),
-        trailing: Icon(Icons.arrow_forward_ios, color: GlobalColors.mainColor),
-        onTap: () {
-          // Acción al tocar la notificación
+      appBar: AppBar(title: Text("Notificaciones")),
+      body: ListView.builder(
+        itemCount: _notificaciones.length,
+        itemBuilder: (context, index) {
+          final notificacion = _notificaciones[index];
+          return ListTile(
+            title: Text(notificacion['titulo']),
+            subtitle: Text(notificacion['descripcion']),
+            trailing: IconButton(
+              icon: Icon(Icons.check),
+              onPressed: () =>
+                  _marcarComoLeida(int.parse(notificacion['id_notificacion'])),
+            ),
+            onLongPress: () => _eliminarNotificacion(
+                int.parse(notificacion['id_notificacion'])),
+          );
         },
       ),
     );

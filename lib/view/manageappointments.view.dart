@@ -83,6 +83,7 @@ class _GestionCitasPageState extends State<GestionCitasPage> {
         // Recargar la lista de citas desde el servidor
         await _fetchCitasProgramadas();
       } else {
+        print(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al cancelar la cita'),
@@ -91,6 +92,7 @@ class _GestionCitasPageState extends State<GestionCitasPage> {
         );
       }
     } catch (e) {
+      print('Error de conexión al cancelar la cita: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error de conexión al cancelar la cita'),
@@ -350,9 +352,15 @@ class _GestionCitasPageState extends State<GestionCitasPage> {
           style: TextStyle(color: Colors.white), // Texto en color blanco
         ),
         backgroundColor: GlobalColors.mainColor, // Azul del logo
-        iconTheme: IconThemeData(
-            color: Colors
-                .white), // Si necesitas que los íconos del AppBar también sean blancos
+        iconTheme: IconThemeData(color: Colors.white),
+        // Agregar botón de regreso al Home
+        leading: IconButton(
+          icon: Icon(Icons.home, color: Colors.white),
+          onPressed: () {
+            Get.offAllNamed(
+                '/home'); // Asegúrate que "/home" es la ruta correcta
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

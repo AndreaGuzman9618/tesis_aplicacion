@@ -169,7 +169,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: cedulaController,
                       text: 'Cédula',
                       obscure: false,
-                      textInputType: TextInputType.number,
+                      textInputType: TextInputType.text,
                     ),
                     Config.spaceSmall,
                     TextFormGlobal(
@@ -190,6 +190,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         border: OutlineInputBorder(),
                       ),
                       readOnly: true,
+                    ),
+                    Config.spaceSmall,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        "Presiona el icono de mapa para actualizar tu dirección",
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
                     ),
                     Config.spaceSmall,
                     TextFormGlobal(
@@ -319,10 +327,25 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  Future<String?> getGoogleApiKey() async {
+    final response =
+        await http.get(Uri.parse('${ApiConfig.baseUrl}/configuracion/api-key'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['api_key'];
+    }
+    return null;
+  }
+
   Future<String?> getAddressFromLatLng(
       double latitude, double longitude) async {
-    const String apiKey =
-        'AIzaSyBscbM7aq7pygWcvtSRPavGpBQfJkRFQv0'; // Reemplaza con tu clave de API
+    final apiKey = await getGoogleApiKey();
+    if (apiKey == null) {
+      print("No se pudo obtener la clave de API.");
+      return null;
+    }
+
     final String url =
         'https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=$apiKey';
 

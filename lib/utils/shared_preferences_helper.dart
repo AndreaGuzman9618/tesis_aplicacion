@@ -10,4 +10,9 @@ class SharedPreferencesHelper {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getInt('userId');
   }
+
+  static Future<void> clearUserSession() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // Clears all stored preferences (session data)
+  }
 }

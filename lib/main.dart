@@ -8,6 +8,7 @@ import 'package:tesis_aplicacion/view/manageappointments.view.dart';
 import 'package:tesis_aplicacion/view/profile.view.dart';
 import 'package:tesis_aplicacion/view/notifcations.view.dart';
 import 'package:tesis_aplicacion/view/settings.view.dart';
+import 'package:tesis_aplicacion/view/home.view.dart';
 
 void main() {
   runApp(const App());
@@ -31,10 +32,10 @@ class App extends StatelessWidget {
         GetPage(name: '/splash', page: () => SplashView()),
         GetPage(name: '/login', page: () => Login()),
         GetPage(name: '/forgot_password', page: () => ForgotPasswordScreen()),
+        GetPage(name: '/home', page: () => HomeScreen()),
         GetPage(
           name: '/appointments',
           page: () {
-            print("Arguments received: ${Get.arguments}");
             final userId1 = Get.arguments as int?;
             if (userId1 == null) {
               throw Exception("ID del usuario no encontrado");
@@ -42,7 +43,16 @@ class App extends StatelessWidget {
             return GestionCitasPage(userId: userId1);
           },
         ),
-        GetPage(name: '/notifications', page: () => NotificacionesPage()),
+        GetPage(
+          name: '/notifications',
+          page: () {
+            final userId1 = Get.arguments as int?;
+            if (userId1 == null) {
+              throw Exception("ID del usuario no encontrado");
+            }
+            return NotificacionesPage(userId: userId1);
+          },
+        ),
         GetPage(name: '/settings', page: () => SettingsPage()),
         GetPage(
           name: '/profile',
