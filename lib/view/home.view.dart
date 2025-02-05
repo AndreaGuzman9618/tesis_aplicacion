@@ -116,6 +116,25 @@ class HomeScreen extends StatelessWidget {
                     label: 'Configuración',
                     onTap: () => Get.toNamed('/settings'),
                   ),
+                  _buildActionButton(
+                    icon: Icons.star_rate,
+                    label: 'Evaluar App',
+                    onTap: () async {
+                      int? userId = await SharedPreferencesHelper
+                          .getUserId(); // Usar la función desde el helper
+                      if (userId != null) {
+                        // Si el ID existe, navegar al perfil
+                        Get.toNamed('/evaluations', arguments: userId);
+                      } else {
+                        // Manejar el caso donde no se encuentra el ID
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text('Error: ID de usuario no encontrado')),
+                        );
+                      }
+                    },
+                  ),
                 ],
               ),
             ),

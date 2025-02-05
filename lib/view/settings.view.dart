@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:tesis_aplicacion/utils/global.colors.dart';
+import 'package:get/get.dart';
+import 'package:tesis_aplicacion/utils/shared_preferences_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatelessWidget {
   @override
@@ -64,6 +67,25 @@ class SettingsPage extends StatelessWidget {
             Icons.help,
             onTap: () {
               // Navegar a página de ayuda
+            },
+          ),
+          _buildSettingsOption(
+            context,
+            "Evaluar Aplicación",
+            "Califica la aplicación y déjanos tu opinión.",
+            Icons.star_rate,
+            onTap: () async {
+              int? userId = await SharedPreferencesHelper
+                  .getUserId(); // Usar la función desde el helper
+              if (userId != null) {
+                // Si el ID existe, navegar al perfil
+                Get.toNamed('/evaluations', arguments: userId);
+              } else {
+                // Manejar el caso donde no se encuentra el ID
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: ID de usuario no encontrado')),
+                );
+              }
             },
           ),
         ],

@@ -9,6 +9,7 @@ import 'package:tesis_aplicacion/view/profile.view.dart';
 import 'package:tesis_aplicacion/view/notifcations.view.dart';
 import 'package:tesis_aplicacion/view/settings.view.dart';
 import 'package:tesis_aplicacion/view/home.view.dart';
+import 'package:tesis_aplicacion/view/evaluations.view.dart';
 
 void main() {
   runApp(const App());
@@ -62,6 +63,16 @@ class App extends StatelessWidget {
               throw Exception("ID del usuario no encontrado");
             }
             return PerfilPage(userId: userId);
+          },
+        ),
+        GetPage(
+          name: '/evaluations',
+          page: () {
+            final userId = Get.arguments as int?;
+            if (userId == null) {
+              throw Exception("ID del usuario no encontrado");
+            }
+            return EvaluacionesPage(userId: userId);
           },
         ),
       ],
